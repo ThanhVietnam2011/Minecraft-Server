@@ -78,7 +78,7 @@ def renew_server():
 
             # 4. Điều hướng thẳng tới trang cấu hình quản lý Server của bạn
             print("-> Điều hướng tới trang quản lý Server ID 14221...")
-            page.goto("https://zampto.net", timeout=45000)
+            page.goto("https://dash.zampto.net/server?id=14540", timeout=45000)
             page.wait_for_timeout(6000)
 
             # 5. Thực thi nhấn nút gia hạn Renew Server
