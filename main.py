@@ -1,12 +1,10 @@
 import os
 import time
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
 
 def renew_server():
-    print("--- Bắt đầu tiến trình Đăng Nhập Hệ Thống & Renew ---")
+    print("--- Bắt đầu tiến trình Đăng Nhập Hệ Thống (Firefox Nhân Thực) & Renew ---")
     
-    # Lấy tài khoản mật khẩu bảo mật từ GitHub Secrets
     username = os.environ.get("ZAMPTO_EMAIL")
     password = os.environ.get("ZAMPTO_PASSWORD")
     
@@ -15,81 +13,60 @@ def renew_server():
         return
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        # Chuyển đổi sang nhân trình duyệt Firefox để bẻ gãy bộ quét Cloudflare Chrome-Bot
+        browser = p.firefox.launch(headless=True)
         
-        # Bổ sung cấu hình ép bật JavaScript và giả lập phần cứng đồ họa máy thật
         context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
             viewport={"width": 1920, "height": 1080},
-            java_script_enabled=True, # Ép buộc bật hoàn toàn JavaScript
+            java_script_enabled=True,
             locale="en-US"
         )
         
         page = context.new_page()
-        stealth_sync(page) # Tàng hình giấu cấu hình Bot đối với Cloudflare
 
         try:
-            # 1. TRUY CẬP ĐƯỜNG DẪN ĐĂNG NHẬP CHUẨN XÁC
-            print("-> Đang truy cập thẳng vào trang auth/login...")
+            # 1. TRUY CẬP TRANG ĐĂNG NHẬP
+            print("-> Đang truy cập thẳng vào trang dash.zampto.net/auth/login...")
             page.goto("https://dash.zampto.net/auth/login", timeout=60000, wait_until="networkidle")
             
-            # Đợi 8 giây cho hệ thống nạp mã JavaScript và Cloudflare Turnstile tự duyệt
+            # Đợi 10 giây để Firefox nạp đầy đủ mã vân tay dân dụng và Cloudflare tự kích hoạt thành công
             print("-> Đang đợi tải Form và xử lý lớp bảo mật bảo vệ...")
-            page.wait_for_timeout(8000)
+            page.wait_for_timeout(10000)
 
-            # 2. Xử lý click ô xác thực nếu Cloudflare Turnstile bị treo xoay tròn
-            turnstile_frame = None
-            for frame in page.frames:
-                if "cloudflare" in frame.url or "turnstile" in frame.url:
-                    turnstile_frame = frame
-                    break
-            
-            if turnstile_frame:
-                try:
-                    checkbox = turnstile_frame.locator("#challenge-stage, .checkbox, input[type='checkbox']").first
-                    if checkbox.is_visible():
-                        checkbox.click()
-                        print("-> Đã click hỗ trợ ô xác thực Cloudflare.")
-                        page.wait_for_timeout(5000)
-                except Exception:
-                    pass
-
-            # 3. TIẾN HÀNH ĐIỀN FORM ĐĂNG NHẬP (EMAIL / PASSWORD)
+            # 2. ĐIỀN FORM ĐĂNG NHẬP
             print("-> Đang nhập tài khoản và mật khẩu vào Form...")
-            
-            # Định vị chính xác ô Email và Password trên trang auth/login
             email_field = page.locator("input[type='email'], input[name='email']").first
             password_field = page.locator("input[type='password'], input[name='password']").first
             
-            # Đợi tối đa 15 giây cho đến khi ô nhập liệu xuất hiện (hết trạng thái Loading)
             email_field.wait_for(state="visible", timeout=15000)
-            
             email_field.fill(username)
             password_field.fill(password)
             page.wait_for_timeout(1000)
 
-            # Nhấn nút kích hoạt Đăng nhập hệ thống
+            # Nhấn nút kích hoạt Đăng nhập
             print("-> Nhấn nút Login...")
             submit_btn = page.locator("button:has-text('Login'), input[type='submit']").first
             submit_btn.click()
             
             print("-> Đang chờ hệ thống tạo phiên đăng nhập mới...")
-            page.wait_for_timeout(12000) # Chờ 12 giây để hoàn thành chuyển hướng vào Dashboard chính
+            page.wait_for_timeout(12000) 
 
-            # 4. Điều hướng thẳng tới trang cấu hình quản lý Server của bạn
-            print("-> Điều hướng tới trang quản lý Server ID 14221...")
+            # 3. ĐIỀU HƯỚNG THẲNG ĐẾN TRANG QUẢN LÝ SERVER ĐÚNG ID 14540
+            print("-> Điều hướng tới trang quản lý Server chính xác: dash.zampto.net/server?id=14540...")
             page.goto("https://dash.zampto.net/server?id=14540", timeout=45000)
-            page.wait_for_timeout(6000)
+            page.wait_for_timeout(8000)
 
-            # 5. Thực thi nhấn nút gia hạn Renew Server
+            # 4. THỰC THI NHẤN NÚT RENEW SERVER
+            print("-> Đang tìm nút Renew Server...")
             renew_button = page.locator("button:has-text('Renew Server'), button:has-text('Renew')").first
             
             if renew_button.is_visible(timeout=10000):
                 renew_button.click()
-                print("🎉 XÁC NHẬN THÀNH CÔNG: Hệ thống đã vượt qua mọi rào cản và CLICK RENEW thành công!")
+                print("🎉 XÁC NHẬN THÀNH CÔNG: Hệ thống Firefox đã vượt qua mọi rào cản và CLICK RENEW THÀNH CÔNG!")
                 page.wait_for_timeout(4000)
             else:
-                print("❌ THẤT BẠI: Đăng nhập thành công nhưng không tìm thấy nút Renew. Vui lòng kiểm tra ảnh lỗi.")
+                print("❌ THẤT BẠI: Đang ở trang bảng điều khiển nhưng không thấy nút Renew. Vui lòng kiểm tra ảnh lỗi.")
                 page.screenshot(path="cloudflare_blocked.png")
                 
         except Exception as e:
