@@ -2,9 +2,9 @@ name: Auto Renew Zampto
 
 on:
   schedule:
-    # Chạy tự động mỗi 20 phút (Đảm bảo nhỏ hơn 1 tiếng)
-    - cron: '*/20 * * * *'
-  workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công nếu muốn
+    # Cấu hình tự động chạy mỗi 45 phút một lần để tối ưu hóa thời gian sống của Server
+    - cron: '*/45 * * * *'
+  workflow_dispatch:
 
 jobs:
   renew:
@@ -16,12 +16,11 @@ jobs:
     - name: Cài đặt Python
       uses: actions/setup-python@v5
       with:
-        python-python: '3.10'
+        python-version: '3.10'
 
     - name: Cài đặt thư viện và trình duyệt
       run: |
         pip install -r requirements.txt
-        pip install playwright
         playwright install chromium
 
     - name: Chạy script gia hạn
@@ -29,10 +28,9 @@ jobs:
         ZAMPTO_COOKIES: ${{ secrets.ZAMPTO_COOKIES }}
       run: python main.py
 
-    - name: Lưu ảnh màn hình nếu bị lỗi
+    - name: Tải ảnh màn hình lên GitHub nếu bị lỗi
       if: always()
-      uses: actions/checkout@v4
+      uses: actions/upload-artifact@v4
       with:
         name: cloudflare-error-screenshot
         path: cloudflare_blocked.png
-
