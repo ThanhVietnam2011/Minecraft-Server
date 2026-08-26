@@ -47,7 +47,7 @@ async def run():
             await page.wait_for_timeout(6000)
 
             # 3. Chuyển sang trang Server
-            server_url = f"https://dash.zampto.net/server/{server_id}"
+            server_url = f"https://dash.zampto.net/server?id={server_id}"
             print(f"Đang chuyển tới trang Server: {server_url}")
             await page.goto(server_url, wait_until="domcontentloaded")
             
