@@ -1,0 +1,28 @@
+name: Auto Renew Zampto
+
+on:
+  schedule:
+    # Chạy tự động mỗi 20 phút (Đảm bảo nhỏ hơn 1 tiếng)
+    - cron: '*/20 * * * *'
+  workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công nếu muốn
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Kiểm tra mã nguồn
+      uses: actions/checkout@v4
+
+    - name: Cài đặt Python
+      uses: actions/setup-python@v5
+      with:
+        python-python: '3.10'
+
+    - name: Cài đặt thư viện và trình duyệt
+      run: |
+        pip install -r requirements.txt
+        pip install playwright
+        playwright install chromium
+
+    - name: Chạy script gia hạn
+      run: python main.py
