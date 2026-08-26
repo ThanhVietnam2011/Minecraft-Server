@@ -2,7 +2,7 @@ name: Auto Renew Zampto
 
 on:
   schedule:
-    # Hệ thống tự động thức dậy để gia hạn mỗi 45 phút một lần (Đảm bảo luôn dưới 1 tiếng)
+    # Hệ thống tự động thức dậy để gia hạn mỗi 45 phút một lần (Luôn nằm trong mức an toàn dưới 1 tiếng)
     - cron: '*/45 * * * *'
   workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công bất cứ lúc nào
 
@@ -18,12 +18,12 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Cài đặt thư viện và trình duyệt ẩn
+    - name: Cài đặt thư viện và trình duyệt ẩn Firefox
       run: |
         pip install -r requirements.txt
-        playwright install chromium
+        playwright install firefox
 
-    - name: Chạy script tự động đăng nhập và gia hạn
+    - name: Chạy script tự động đăng nhập và gia hạn bằng Firefox
       env:
         ZAMPTO_EMAIL: ${{ secrets.ZAMPTO_EMAIL }}
         ZAMPTO_PASSWORD: ${{ secrets.ZAMPTO_PASSWORD }}
