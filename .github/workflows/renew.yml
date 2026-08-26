@@ -2,9 +2,9 @@ name: Auto Renew Zampto
 
 on:
   schedule:
-    # Cấu hình tự động chạy mỗi 45 phút một lần để tối ưu hóa thời gian sống của Server
+    # Hệ thống tự động thức dậy để gia hạn mỗi 45 phút một lần (Đảm bảo luôn dưới 1 tiếng)
     - cron: '*/45 * * * *'
-  workflow_dispatch:
+  workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công bất cứ lúc nào
 
 jobs:
   renew:
@@ -18,17 +18,18 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Cài đặt thư viện và trình duyệt
+    - name: Cài đặt thư viện và trình duyệt ẩn
       run: |
         pip install -r requirements.txt
         playwright install chromium
 
-    - name: Chạy script gia hạn
+    - name: Chạy script tự động đăng nhập và gia hạn
       env:
-        ZAMPTO_COOKIES: ${{ secrets.ZAMPTO_COOKIES }}
+        ZAMPTO_EMAIL: ${{ secrets.ZAMPTO_EMAIL }}
+        ZAMPTO_PASSWORD: ${{ secrets.ZAMPTO_PASSWORD }}
       run: python main.py
 
-    - name: Tải ảnh màn hình lên GitHub nếu bị lỗi
+    - name: Tải ảnh chụp màn hình lên GitHub nếu xảy ra lỗi
       if: always()
       uses: actions/upload-artifact@v4
       with:
