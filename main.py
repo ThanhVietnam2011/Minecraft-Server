@@ -9,14 +9,14 @@ async def run():
         page = await context.new_page()
 
         # 1. Đăng nhập vào Zampto
-        await page.goto("https://dash.zampto.net/login")
+        await page.goto("https://dash.zampto.net/auth/login")
         await page.fill('input[name="email"]', "YOUR_EMAIL")
         await page.fill('input[name="password"]', "YOUR_PASSWORD")
         await page.click('button[type="submit"]')
         await page.wait_for_timeout(5000)
 
         # 2. Truy cập trang quản lý Server
-        await page.goto("https://dash.zampto.net/server/YOUR_SERVER_ID")
+        await page.goto("https://dash.zampto.net/server?id=14540")
         
         # 3. Đợi Cloudflare Turnstile tự động load và verify xong
         await page.wait_for_timeout(8000) 
