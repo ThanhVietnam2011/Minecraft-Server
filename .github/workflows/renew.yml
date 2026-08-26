@@ -28,3 +28,11 @@ jobs:
       env:
         ZAMPTO_COOKIES: ${{ secrets.ZAMPTO_COOKIES }}
       run: python main.py
+
+    - name: Lưu ảnh màn hình nếu bị lỗi
+      if: always()
+      uses: actions/checkout@v4
+      with:
+        name: cloudflare-error-screenshot
+        path: cloudflare_blocked.png
+
